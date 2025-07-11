@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Lista de Agendamentos - Estilizado e Responsivo</title>
-<link rel="shortcut icon" href="../Lista de Tarefas/SRC/Favicom.jpeg" type="image/x-icon">
+<link rel="shortcut icon" href="SRC/Favicom.jpeg" type="image/x-icon">
 
 <!-- Fonte chamativa do Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
@@ -436,6 +436,44 @@
       width: 100%;
     }
   }
+
+  #planilhaContainer table button {
+  padding: 8px 14px;
+  margin: 0 4px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  box-shadow: 0 2px 8px rgb(195 59 128 / 0.4);
+  color: white;
+}
+
+/* Botão Editar */
+#planilhaContainer table button:nth-child(1) {
+  background-color: #c33b80;
+}
+#planilhaContainer table button:nth-child(1):hover {
+  background-color: #a32865;
+}
+
+/* Botão Excluir */
+#planilhaContainer table button:nth-child(2) {
+  background-color: #6c757d;
+}
+#planilhaContainer table button:nth-child(2):hover {
+  background-color: #5a6268;
+}
+
+/* Responsividade */
+@media (max-width: 600px) {
+  #planilhaContainer table button {
+    padding: 10px 18px;
+    font-size: 1rem;
+    margin: 5px;
+  }
+}
 </style>
 </head>
 <body>
@@ -473,202 +511,197 @@
   </div>
 
 <script>
-  const TaskList = document.getElementById("TaskList");
-  const TaskInput = document.getElementById("TaskInput");
-  const DataInput = document.getElementById("DataInput");
-  const DataHour = document.getElementById("DataHour");
-  const ValorInput = document.getElementById("ValorInput");
-  const ImageInput = document.getElementById("ImageInput");
-  const planilhaContainer = document.getElementById("planilhaContainer");
-  const modalImg = document.getElementById("modalImg");
-  const modalImgTag = modalImg.querySelector("img");
+const TaskList = document.getElementById("TaskList");
+const TaskInput = document.getElementById("TaskInput");
+const DataInput = document.getElementById("DataInput");
+const DataHour = document.getElementById("DataHour");
+const ValorInput = document.getElementById("ValorInput");
+const ImageInput = document.getElementById("ImageInput");
+const planilhaContainer = document.getElementById("planilhaContainer");
+const modalImg = document.getElementById("modalImg");
+const modalImgTag = modalImg.querySelector("img");
 
-  let agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
+let agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
 
-  function salvarLocalStorage() {
-    localStorage.setItem("agendamentos", JSON.stringify(agendamentos));
+function salvarLocalStorage() {
+  localStorage.setItem("agendamentos", JSON.stringify(agendamentos));
+}
+
+function formatarData(dataStr) {
+  const data = new Date(dataStr);
+  const dia = String(data.getDate()).padStart(2, "0");
+  const mes = String(data.getMonth() + 1).padStart(2, "0");
+  const ano = data.getFullYear();
+  return `${dia}/${mes}/${ano}`;
+}
+
+function adicionarAgendamento() {
+  const nome = TaskInput.value.trim();
+  const data = DataInput.value;
+  const hora = DataHour.value;
+  const valor = parseFloat(ValorInput.value);
+  const imagemFile = ImageInput.files[0];
+
+  if (!nome || !data || !hora || isNaN(valor)) {
+    alert("Preencha todos os campos obrigatórios!");
+    return;
   }
 
-  function formatarData(dataStr) {
-    const data = new Date(dataStr);
-    const dia = String(data.getDate()).padStart(2, "0");
-    const mes = String(data.getMonth() + 1).padStart(2, "0");
-    const ano = data.getFullYear();
-    return `${dia}/${mes}/${ano}`;
-  }
-
-  function adicionarAgendamento() {
-    const nome = TaskInput.value.trim();
-    const data = DataInput.value;
-    const hora = DataHour.value;
-    const valor = parseFloat(ValorInput.value);
-    const imagemFile = ImageInput.files[0];
-
-    if (!nome || !data || !hora || isNaN(valor)) {
-      alert("Preencha todos os campos obrigatórios!");
-      return;
-    }
-
-    if (imagemFile) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        salvarAgendamento(nome, data, hora, valor, reader.result);
-        limparCampos();
-      };
-      reader.readAsDataURL(imagemFile);
-    } else {
-      salvarAgendamento(nome, data, hora, valor, null);
+  if (imagemFile) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      salvarAgendamento(nome, data, hora, valor, reader.result);
       limparCampos();
-    }
-  }
-
-  function salvarAgendamento(nome, data, hora, valor, imagem) {
-    const novo = {
-      id: Date.now(),
-      nome,
-      data,
-      hora,
-      valor,
-      imagem,
-      confirmado: false,
-      editando: false,
     };
-    agendamentos.push(novo);
-    salvarLocalStorage();
-    renderizarLista();
+    reader.readAsDataURL(imagemFile);
+  } else {
+    salvarAgendamento(nome, data, hora, valor, null);
+    limparCampos();
   }
+}
 
-  function limparCampos() {
-    TaskInput.value = "";
-    DataInput.value = "";
-    DataHour.value = "";
-    ValorInput.value = "";
-    ImageInput.value = "";
-  }
+function salvarAgendamento(nome, data, hora, valor, imagem) {
+  const novo = {
+    id: Date.now(),
+    nome,
+    data,
+    hora,
+    valor,
+    imagem,
+    confirmado: false,
+    editando: false,
+  };
+  agendamentos.push(novo);
+  salvarLocalStorage();
+  renderizarLista();
+}
 
-  function renderizarLista() {
-    TaskList.innerHTML = "";
-    agendamentos.forEach((agendamento) => {
-      if (agendamento.confirmado) return;
+function limparCampos() {
+  TaskInput.value = "";
+  DataInput.value = "";
+  DataHour.value = "";
+  ValorInput.value = "";
+  ImageInput.value = "";
+}
 
-      const li = document.createElement("li");
-      li.dataset.id = agendamento.id;
+function renderizarLista() {
+  TaskList.innerHTML = "";
+  agendamentos.forEach((agendamento) => {
+    if (agendamento.confirmado) return;
 
-      if (agendamento.editando) {
-        li.classList.add("editing");
-        li.innerHTML = `
-          <input type="text" class="edit-nome" value="${agendamento.nome}" placeholder="Nome do cliente" />
-          <input type="date" class="edit-data" value="${agendamento.data}" />
-          <input type="time" class="edit-hora" value="${agendamento.hora}" />
-          <input type="number" class="edit-valor" value="${agendamento.valor.toFixed(2)}" step="0.01" min="0" />
-          <input type="file" class="edit-imagem" accept="image/*" />
-          <div class="btn-group">
-            <button class="salvar-btn">Salvar</button>
-            <button class="cancelar-btn">Cancelar</button>
-          </div>
-        `;
+    const li = document.createElement("li");
+    li.dataset.id = agendamento.id;
 
-        li.querySelector(".salvar-btn").onclick = () => {
-          const novoNome = li.querySelector(".edit-nome").value.trim();
-          const novaData = li.querySelector(".edit-data").value;
-          const novaHora = li.querySelector(".edit-hora").value;
-          const novoValor = parseFloat(li.querySelector(".edit-valor").value);
-          const inputImg = li.querySelector(".edit-imagem");
+    if (agendamento.editando) {
+      li.classList.add("editing");
+      li.innerHTML = `
+        <input type="text" class="edit-nome" value="${agendamento.nome}" placeholder="Nome do cliente" />
+        <input type="date" class="edit-data" value="${agendamento.data}" />
+        <input type="time" class="edit-hora" value="${agendamento.hora}" />
+        <input type="number" class="edit-valor" value="${agendamento.valor.toFixed(2)}" step="0.01" min="0" />
+        <input type="file" class="edit-imagem" accept="image/*" />
+        <div class="btn-group">
+          <button class="salvar-btn">Salvar</button>
+          <button class="cancelar-btn">Cancelar</button>
+        </div>
+      `;
 
-          if (!novoNome || !novaData || !novaHora || isNaN(novoValor)) {
-            alert("Preencha todos os campos!");
-            return;
-          }
+      li.querySelector(".salvar-btn").onclick = () => {
+        const novoNome = li.querySelector(".edit-nome").value.trim();
+        const novaData = li.querySelector(".edit-data").value;
+        const novaHora = li.querySelector(".edit-hora").value;
+        const novoValor = parseFloat(li.querySelector(".edit-valor").value);
+        const inputImg = li.querySelector(".edit-imagem");
 
-          agendamento.nome = novoNome;
-          agendamento.data = novaData;
-          agendamento.hora = novaHora;
-          agendamento.valor = novoValor;
+        if (!novoNome || !novaData || !novaHora || isNaN(novoValor)) {
+          alert("Preencha todos os campos!");
+          return;
+        }
 
-          if (inputImg.files[0]) {
-            const reader = new FileReader();
-            reader.onload = () => {
-              agendamento.imagem = reader.result;
-              agendamento.editando = false;
-              salvarLocalStorage();
-              renderizarLista();
-              renderizarPlanilha();
-            };
-            reader.readAsDataURL(inputImg.files[0]);
-          } else {
+        agendamento.nome = novoNome;
+        agendamento.data = novaData;
+        agendamento.hora = novaHora;
+        agendamento.valor = novoValor;
+
+        if (inputImg.files[0]) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            agendamento.imagem = reader.result;
             agendamento.editando = false;
             salvarLocalStorage();
             renderizarLista();
             renderizarPlanilha();
-          }
-        };
-
-        li.querySelector(".cancelar-btn").onclick = () => {
+          };
+          reader.readAsDataURL(inputImg.files[0]);
+        } else {
           agendamento.editando = false;
+          salvarLocalStorage();
           renderizarLista();
-        };
-      } else {
-        const infoDiv = document.createElement("div");
-        infoDiv.className = "task-info";
-
-        const nomeStrong = document.createElement("strong");
-        nomeStrong.textContent = agendamento.nome;
-
-        const detalhesSpan = document.createElement("span");
-        detalhesSpan.textContent = `${formatarData(agendamento.data)} às ${agendamento.hora} - R$ ${agendamento.valor.toFixed(2)}`;
-
-        infoDiv.appendChild(nomeStrong);
-        infoDiv.appendChild(detalhesSpan);
-
-        li.appendChild(infoDiv);
-
-        if (agendamento.imagem) {
-          const img = document.createElement("img");
-          img.src = agendamento.imagem;
-          img.alt = `Foto de ${agendamento.nome}`;
-          img.className = "task-img";
-          img.onclick = () => abrirModal(img.src);
-          li.appendChild(img);
+          renderizarPlanilha();
         }
+      };
 
-        
-        const btnGroup = document.createElement("div");
-        btnGroup.className = "btn-group";
+      li.querySelector(".cancelar-btn").onclick = () => {
+        agendamento.editando = false;
+        renderizarLista();
+      };
+    } else {
+      const infoDiv = document.createElement("div");
+      infoDiv.className = "task-info";
 
-        
-        const btnConfirmar = document.createElement("button");
-        btnConfirmar.textContent = "Concluído";
-        btnConfirmar.className = "confirmar-btn";
-        btnConfirmar.onclick = () => confirmarAgendamento(agendamento.id);
+      const nomeStrong = document.createElement("strong");
+      nomeStrong.textContent = agendamento.nome;
 
-        
-        const btnEditar = document.createElement("button");
-        btnEditar.textContent = "Editar";
-        btnEditar.className = "editar-btn";
-        btnEditar.onclick = () => {
-          agendamento.editando = true;
-          renderizarLista();
-        };
+      const detalhesSpan = document.createElement("span");
+      detalhesSpan.textContent = `${formatarData(agendamento.data)} às ${agendamento.hora} - R$ ${agendamento.valor.toFixed(2)}`;
 
-        // Excluir
-        const btnExcluir = document.createElement("button");
-        btnExcluir.textContent = "Excluir";
-        btnExcluir.className = "excluir-btn";
-        btnExcluir.onclick = () => confirmarExclusao(agendamento.id);
+      infoDiv.appendChild(nomeStrong);
+      infoDiv.appendChild(detalhesSpan);
 
-        btnGroup.appendChild(btnConfirmar);
-        btnGroup.appendChild(btnEditar);
-        btnGroup.appendChild(btnExcluir);
+      li.appendChild(infoDiv);
 
-        li.appendChild(btnGroup);
+      if (agendamento.imagem) {
+        const img = document.createElement("img");
+        img.src = agendamento.imagem;
+        img.alt = `Foto de ${agendamento.nome}`;
+        img.className = "task-img";
+        img.onclick = () => abrirModal(img.src);
+        li.appendChild(img);
       }
 
-      TaskList.appendChild(li);
-    });
-  }
+      const btnGroup = document.createElement("div");
+      btnGroup.className = "btn-group";
 
-  // Confirmar agendamento (mover para concluídos)
-  let idParaAcao = null;
+      const btnConfirmar = document.createElement("button");
+      btnConfirmar.textContent = "Concluído";
+      btnConfirmar.className = "confirmar-btn";
+      btnConfirmar.onclick = () => confirmarAgendamento(agendamento.id);
+
+      const btnEditar = document.createElement("button");
+      btnEditar.textContent = "Editar";
+      btnEditar.className = "editar-btn";
+      btnEditar.onclick = () => {
+        agendamento.editando = true;
+        renderizarLista();
+      };
+
+      const btnExcluir = document.createElement("button");
+      btnExcluir.textContent = "Excluir";
+      btnExcluir.className = "excluir-btn";
+      btnExcluir.onclick = () => confirmarExclusao(agendamento.id);
+
+      btnGroup.appendChild(btnConfirmar);
+      btnGroup.appendChild(btnEditar);
+      btnGroup.appendChild(btnExcluir);
+
+      li.appendChild(btnGroup);
+    }
+
+    TaskList.appendChild(li);
+  });
+}
+
+let idParaAcao = null;
 let acaoTipo = "";
 
 function confirmarExclusao(id) {
@@ -705,72 +738,106 @@ document.getElementById("btnConfirmarPopup").onclick = () => {
   fecharPopup();
 };
 
-  // Modal Imagem
-  function abrirModal(src) {
-    modalImgTag.src = src;
-    modalImg.style.display = "flex";
+function abrirModal(src) {
+  modalImgTag.src = src;
+  modalImg.style.display = "flex";
+}
+function fecharModal() {
+  modalImg.style.display = "none";
+  modalImgTag.src = "";
+}
+
+function editarConcluido(id) {
+  const agendamento = agendamentos.find((a) => a.id === id);
+  if (!agendamento) return;
+  agendamento.confirmado = false;
+  renderizarLista();
+  renderizarPlanilha();
+  salvarLocalStorage();
+}
+
+function excluirConcluido(id) {
+  const confirmar = confirm("Tem certeza que deseja excluir este agendamento? Esta ação é irreversível!");
+  if (!confirmar) return;
+  agendamentos = agendamentos.filter((a) => a.id !== id);
+  salvarLocalStorage();
+  renderizarPlanilha();
+}
+
+function toggleTabela(id) {
+  const tabela = document.getElementById(`tabela-${id}`);
+  if (tabela.style.display === "none") {
+    tabela.style.display = "table";
+  } else {
+    tabela.style.display = "none";
   }
-  function fecharModal() {
-    modalImg.style.display = "none";
-    modalImgTag.src = "";
+}
+
+function renderizarPlanilha() {
+  const confirmados = agendamentos.filter((a) => a.confirmado);
+  if (confirmados.length === 0) {
+    planilhaContainer.style.display = "none";
+    planilhaContainer.innerHTML = "";
+    return;
   }
 
-  // Renderizar planilha com ganhos por mês
-  function renderizarPlanilha() {
-    // Agrupar por mês/ano os agendamentos confirmados
-    const confirmados = agendamentos.filter((a) => a.confirmado);
-    if (confirmados.length === 0) {
-      planilhaContainer.style.display = "none";
-      planilhaContainer.innerHTML = "";
-      return;
-    }
+  const grupos = {};
+  confirmados.forEach(({ nome, valor, data, id }) => {
+    const dt = new Date(data);
+    const mesAno = dt.toLocaleString("pt-BR", { month: "long", year: "numeric" });
+    if (!grupos[mesAno]) grupos[mesAno] = [];
+    grupos[mesAno].push({ nome, valor, id });
+  });
 
-    // Agrupar por mês e ano
-    const grupos = {};
-    confirmados.forEach(({ nome, valor, data }) => {
-      const dt = new Date(data);
-      const mesAno = dt.toLocaleString("pt-BR", { month: "long", year: "numeric" });
-      if (!grupos[mesAno]) grupos[mesAno] = [];
-      grupos[mesAno].push({ nome, valor });
+  let html = '<h2>Planilha de Ganhos por Mês</h2>';
+  let count = 0;
+
+  for (const mesAno in grupos) {
+    const id = count++;
+    const items = grupos[mesAno];
+    const soma = items.reduce((acc, cur) => acc + cur.valor, 0);
+    const media = soma / items.length;
+
+    html += `<div class="mes-section">
+      <h3 style="color:#a32865; cursor:pointer;" onclick="toggleTabela(${id})">${mesAno.charAt(0).toUpperCase() + mesAno.slice(1)}</h3>
+      <table id="tabela-${id}" style="display: table;">
+      <thead><tr><th>Cliente</th><th>Valor (R$)</th><th>Ações</th></tr></thead><tbody>`;
+
+    items.forEach(({ nome, valor, id }) => {
+      html += `<tr>
+        <td>${nome}</td>
+        <td>${valor.toFixed(2)}</td>
+        <td>
+          <button onclick="editarConcluido(${id})">Editar</button>
+          <button onclick="excluirConcluido(${id})">Excluir</button>
+        </td>
+      </tr>`;
     });
 
-    let html = '<h2>Planilha de Ganhos por Mês</h2>';
-
-    for (const mesAno in grupos) {
-      const items = grupos[mesAno];
-      const soma = items.reduce((acc, cur) => acc + cur.valor, 0);
-      const media = soma / items.length;
-
-      html += `<div class="mes-section">`;
-      html += `<h3 style="color:#a32865;">${mesAno.charAt(0).toUpperCase() + mesAno.slice(1)}</h3>`;
-      html += `<table>
-          <thead><tr><th>Cliente</th><th>Valor (R$)</th></tr></thead><tbody>`;
-
-      items.forEach(({ nome, valor }) => {
-        html += `<tr><td>${nome}</td><td>${valor.toFixed(2)}</td></tr>`;
-      });
-
-      html += `</tbody><tfoot>
-          <tr><td>Total</td><td>R$ ${soma.toFixed(2)}</td></tr>
-          <tr><td>Média de Ganhos</td><td>R$ ${media.toFixed(2)}</td></tr>
-          </tfoot></table></div>`;
-    }
-
-    planilhaContainer.innerHTML = html;
+    html += `</tbody><tfoot>
+        <tr><td>Total</td><td colspan="2">R$ ${soma.toFixed(2)}</td></tr>
+        <tr><td>Média</td><td colspan="2">R$ ${media.toFixed(2)}</td></tr>
+      </tfoot></table></div>`;
   }
 
-  function mostrarPlanilha() {
-    if (planilhaContainer.style.display === "block") {
-      planilhaContainer.style.display = "none";
-      btnPlanilha.textContent = "📊 Ver Planilha de Ganhos";
-    } else {
-      renderizarPlanilha();
-      planilhaContainer.style.display = "block";
-      btnPlanilha.textContent = "❌ Fechar Planilha";
-    }
-  }
+  planilhaContainer.innerHTML = html;
+}
 
-  renderizarLista();
+function mostrarPlanilha() {
+  if (planilhaContainer.style.display === "block") {
+    planilhaContainer.style.display = "none";
+    btnPlanilha.textContent = "📊 Ver Planilha de Ganhos";
+  } else {
+    renderizarPlanilha();
+    planilhaContainer.style.display = "block";
+    btnPlanilha.textContent = "❌ Fechar Planilha";
+  }
+}
+
+renderizarLista();
+
+  
 </script>
 </body>
 </html>
+
